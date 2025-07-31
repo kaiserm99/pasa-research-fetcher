@@ -1,0 +1,166 @@
+[project]
+name = "pasa-research-fetcher"
+version = "0.1.0"
+description = "A professional Python package for fetching and extracting research papers from pasa-agent.ai"
+readme = "README.md"
+authors = [
+    { name = "Marco Kaiser", email = "marco99kaiser@googlemail.com" }
+]
+license = { text = "MIT" }
+keywords = ["research", "papers", "arxiv", "scraping", "academic", "pasa-agent"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Text Processing :: Markup :: HTML",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "beautifulsoup4>=4.13.4",
+    "lxml>=6.0.0", 
+    "pydantic>=2.11.7",
+    "rich>=14.1.0",
+    "typer>=0.16.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/marcokaiser/pasa-research-fetcher"
+Documentation = "https://github.com/marcokaiser/pasa-research-fetcher/blob/main/README.md"
+Repository = "https://github.com/marcokaiser/pasa-research-fetcher"
+Issues = "https://github.com/marcokaiser/pasa-research-fetcher/issues"
+Changelog = "https://github.com/marcokaiser/pasa-research-fetcher/blob/main/CHANGELOG.md"
+
+[project.scripts]
+pasa-fetcher = "pasa_research_fetcher.cli:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "black>=24.0.0",
+    "ruff>=0.8.0",
+    "mypy>=1.14.0",
+    "pre-commit>=3.5.0",
+]
+download = [
+    "asyncio-throttle>=1.0.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pasa_research_fetcher"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/",
+    "README.md",
+    "INSTALL.md",
+    "examples/",
+    "tests/",
+    "pyproject.toml",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.mypy]
+python_version = "3.12"
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+no_implicit_optional = true
+no_implicit_reexport = true
+show_error_codes = true
+strict_equality = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "mypy>=1.17.1",
+    "ruff>=0.12.7",
+]
