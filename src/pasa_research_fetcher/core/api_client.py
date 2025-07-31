@@ -130,11 +130,12 @@ class PasaApiClient:
         return papers
 
     async def _poll_results_complete(
-        self, session_id: str, poll_interval: float = 2.0, max_polls: int = 40
+        self, session_id: str, poll_interval: float = 2.0, max_polls: int | None = None
     ) -> dict[str, Any]:
         """
         Enhanced polling method that ensures complete results.
-        Uses stricter stability criteria and longer polling duration.
+        Polls until completion is detected based on stability criteria.
+        No hard limit on polls - runs until truly complete.
         """
         url = f"{self.base_url}/paper-agent/api/v1/single_get_result"
         payload = {"session_id": session_id}
@@ -143,8 +144,12 @@ class PasaApiClient:
         stability_count = 0
         required_stability = 3  # Require 3 consecutive stable polls
         min_poll_duration = 10  # Minimum 10 polls before considering completion
+        poll_count = 0
+        
+        # Safety limit to prevent infinite loops (can be overridden)
+        safety_limit = max_polls or 120  # Default 4 minutes max
 
-        for poll_count in range(max_polls):
+        while poll_count < safety_limit:
             try:
                 response = await self.client.post(url, json=payload)
                 response.raise_for_status()
@@ -193,10 +198,11 @@ class PasaApiClient:
                 logger.warning(f"Enhanced polling error (attempt {poll_count + 1}): {e}")
 
             await asyncio.sleep(poll_interval)
+            poll_count += 1
 
         # If we exit the loop, return whatever we have
         logger.warning(
-            f"Enhanced polling completed after {max_polls} attempts with {last_paper_count} papers"
+            f"Enhanced polling completed after {safety_limit} attempts with {last_paper_count} papers"
         )
 
         # Make one final attempt to get results

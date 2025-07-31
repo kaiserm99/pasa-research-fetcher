@@ -126,6 +126,72 @@ def _display_json(papers: list[Paper]) -> None:
     console.print_json(data=papers_data)
 
 
+@app.command("search-complete")
+def search_complete(
+    query: str = typer.Argument(..., help="Search query for papers"),
+    max_results: int | None = typer.Option(None, "--max", "-m", help="Maximum number of results"),
+    output_dir: str = typer.Option(
+        "./downloads", "--output", "-o", help="Output directory for downloads"
+    ),
+    output_format: str = typer.Option("json", "--format", "-f", help="Output format (json, table)"),
+    download_pdfs: bool = typer.Option(True, "--pdfs/--no-pdfs", help="Download PDF files"),
+    download_tex: bool = typer.Option(False, "--tex/--no-tex", help="Download TeX source files"),
+    sort_by_relevance: bool = typer.Option(True, "--sort/--no-sort", help="Sort by relevance score"),
+    timeout: int = typer.Option(60000, "--timeout", help="Request timeout in milliseconds"),
+) -> None:
+    """Search for research papers with completion guarantee and relevance sorting"""
+    asyncio.run(
+        _search_complete_async(
+            query,
+            max_results,
+            output_dir,
+            output_format,
+            download_pdfs,
+            download_tex,
+            sort_by_relevance,
+            timeout,
+        )
+    )
+
+
+async def _search_complete_async(
+    query: str,
+    max_results: int | None,
+    output_dir: str,
+    output_format: str,
+    download_pdfs: bool,
+    download_tex: bool,
+    sort_by_relevance: bool,
+    timeout: int,
+) -> None:
+    """Internal async function for complete search"""
+    config = FetcherConfig(
+        timeout=timeout,
+        download_pdfs=download_pdfs,
+        download_tex=download_tex,
+    )
+
+    async with PasaFetcher(config) as fetcher:
+        # Use the complete search method
+        papers = await fetcher.fetch_papers_until_complete(
+            query, max_results, sort_by_relevance
+        )
+
+        if not papers:
+            console.print("[yellow]No papers found for query.[/yellow]")
+            return
+
+        # Download files if requested
+        if download_pdfs or download_tex:
+            await fetcher.download_papers(papers, output_dir)
+
+        # Format and display results
+        if output_format == "table":
+            _display_table(papers)
+        else:
+            _display_json(papers)
+
+
 @app.command()
 def config() -> None:
     """Show current configuration"""
