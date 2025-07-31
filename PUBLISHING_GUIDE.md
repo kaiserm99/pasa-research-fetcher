@@ -34,11 +34,11 @@ git commit -m "Initial commit: PASA Research Fetcher package
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
-# Create repository on GitHub (replace YOUR_USERNAME)
+# Create repository on GitHub
 gh repo create pasa-research-fetcher --public --push --source=.
 
 # Or manually create on GitHub.com and push:
-git remote add origin git@github.com:YOUR_USERNAME/pasa-research-fetcher.git
+git remote add origin git@github.com-personal:kaiserm99/pasa-research-fetcher.git
 git branch -M main
 git push -u origin main
 ```

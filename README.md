@@ -209,7 +209,7 @@ papers = await service.get_papers_for_topic("neural networks", limit=5)
 
 ```bash
 # Clone repository
-git clone https://github.com/marcokaiser/pasa-research-fetcher
+git clone https://github.com/kaiserm99/pasa-research-fetcher
 cd pasa-research-fetcher
 
 # Install in development mode
@@ -259,8 +259,8 @@ Contributions are welcome! Please read our contributing guidelines and submit pu
 
 If you encounter any issues or have questions:
 
-1. Check the [documentation](https://github.com/marcokaiser/pasa-research-fetcher/blob/main/README.md)
-2. Search [existing issues](https://github.com/marcokaiser/pasa-research-fetcher/issues)
+1. Check the [documentation](https://github.com/kaiserm99/pasa-research-fetcher/blob/main/README.md)
+2. Search [existing issues](https://github.com/kaiserm99/pasa-research-fetcher/issues)
 3. Create a new issue with detailed information
 
 ## Disclaimer

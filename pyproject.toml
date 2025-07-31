@@ -31,11 +31,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/marcokaiser/pasa-research-fetcher"
-Documentation = "https://github.com/marcokaiser/pasa-research-fetcher/blob/main/README.md"
-Repository = "https://github.com/marcokaiser/pasa-research-fetcher"
-Issues = "https://github.com/marcokaiser/pasa-research-fetcher/issues"
-Changelog = "https://github.com/marcokaiser/pasa-research-fetcher/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/kaiserm99/pasa-research-fetcher"
+Documentation = "https://github.com/kaiserm99/pasa-research-fetcher/blob/main/README.md"
+Repository = "https://github.com/kaiserm99/pasa-research-fetcher"
+Issues = "https://github.com/kaiserm99/pasa-research-fetcher/issues"
+Changelog = "https://github.com/kaiserm99/pasa-research-fetcher/blob/main/CHANGELOG.md"
 
 [project.scripts]
 pasa-fetcher = "pasa_research_fetcher.cli:app"
