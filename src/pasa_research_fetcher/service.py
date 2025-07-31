@@ -47,7 +47,7 @@ async def search_papers_complete(
 ) -> list[Paper]:
     """
     Search for research papers with completion guarantee and relevance sorting.
-    
+
     This function ensures the search runs until fully complete, returning all
     available papers sorted by relevance score (highest first by default).
 
@@ -68,11 +68,11 @@ async def search_papers_complete(
         async def main():
             # Get complete results sorted by relevance
             papers = await search_papers_complete(
-                "machine learning transformers", 
+                "machine learning transformers",
                 max_results=20,
                 sort_by_relevance=True
             )
-            
+
             print(f"Found {len(papers)} papers")
             for paper in papers[:5]:  # Show top 5
                 print(f"{paper.metadata.title}")
@@ -179,7 +179,7 @@ def search_papers_complete_sync(
 ) -> list[Paper]:
     """
     Synchronous wrapper for search_papers_complete with completion guarantee
-    
+
     This function ensures the search runs until fully complete, returning all
     available papers sorted by relevance score (highest first by default).
 
@@ -198,11 +198,11 @@ def search_papers_complete_sync(
 
         # Get complete results sorted by relevance
         papers = search_papers_complete_sync(
-            "neural networks attention mechanism", 
+            "neural networks attention mechanism",
             max_results=15,
             sort_by_relevance=True
         )
-        
+
         print(f"Found {len(papers)} papers")
         for paper in papers[:3]:  # Show top 3
             print(f"{paper.metadata.title}")

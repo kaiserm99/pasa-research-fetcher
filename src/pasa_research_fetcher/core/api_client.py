@@ -130,7 +130,7 @@ class PasaApiClient:
         return papers
 
     async def _poll_results_complete(
-        self, session_id: str, poll_interval: float = 3.0, max_polls: int = 60
+        self, session_id: str, poll_interval: float = 2.0, max_polls: int = 40
     ) -> dict[str, Any]:
         """
         Enhanced polling method that ensures complete results.
@@ -141,8 +141,8 @@ class PasaApiClient:
 
         last_paper_count = 0
         stability_count = 0
-        required_stability = 4  # Require 4 consecutive stable polls
-        min_poll_duration = 15  # Minimum 15 polls before considering completion
+        required_stability = 3  # Require 3 consecutive stable polls
+        min_poll_duration = 10  # Minimum 10 polls before considering completion
 
         for poll_count in range(max_polls):
             try:
@@ -152,10 +152,12 @@ class PasaApiClient:
 
                 if data.get("base_resp", {}).get("status_code") == 0:
                     papers_json = data.get("papers", "{}")
-                    papers_dict = json.loads(papers_json) if isinstance(papers_json, str) else papers_json
+                    papers_dict = (
+                        json.loads(papers_json) if isinstance(papers_json, str) else papers_json
+                    )
 
                     current_count = len(papers_dict)
-                    
+
                     # Check if we have the same count as last poll
                     if current_count == last_paper_count and current_count > 0:
                         stability_count += 1
@@ -168,9 +170,11 @@ class PasaApiClient:
                     # 1. Must have completed minimum polling duration
                     # 2. Must have stable results for required consecutive polls
                     # 3. Must have found at least some papers
-                    if (poll_count >= min_poll_duration and 
-                        stability_count >= required_stability and 
-                        current_count > 0):
+                    if (
+                        poll_count >= min_poll_duration
+                        and stability_count >= required_stability
+                        and current_count > 0
+                    ):
                         logger.info(
                             f"Enhanced polling complete: {current_count} papers "
                             f"(stable for {stability_count} polls, total polls: {poll_count + 1})"
@@ -191,17 +195,21 @@ class PasaApiClient:
             await asyncio.sleep(poll_interval)
 
         # If we exit the loop, return whatever we have
-        logger.warning(f"Enhanced polling completed after {max_polls} attempts with {last_paper_count} papers")
-        
+        logger.warning(
+            f"Enhanced polling completed after {max_polls} attempts with {last_paper_count} papers"
+        )
+
         # Make one final attempt to get results
         try:
             response = await self.client.post(url, json=payload)
             response.raise_for_status()
             data = response.json()
-            
+
             if data.get("base_resp", {}).get("status_code") == 0:
                 papers_json = data.get("papers", "{}")
-                papers_dict = json.loads(papers_json) if isinstance(papers_json, str) else papers_json
+                papers_dict = (
+                    json.loads(papers_json) if isinstance(papers_json, str) else papers_json
+                )
                 return papers_dict  # type: ignore
         except Exception as e:
             logger.error(f"Final enhanced polling attempt failed: {e}")
