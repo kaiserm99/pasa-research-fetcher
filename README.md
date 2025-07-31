@@ -32,13 +32,13 @@ uv sync
 
 ```bash
 # Search for papers and display results
-pasa-fetcher "Show me research on long video description"
+pasa-fetcher search "Show me research on long video description"
 
 # Download PDFs and limit results
-pasa-fetcher "large language models in-context learning" --max 10 --output ./papers
+pasa-fetcher search "large language models in-context learning" --max 10 --output ./papers
 
 # Display results in table format
-pasa-fetcher "multimodal foundation models" --format table --no-pdfs
+pasa-fetcher search "multimodal foundation models" --format table --no-pdfs
 ```
 
 ### Python API Usage

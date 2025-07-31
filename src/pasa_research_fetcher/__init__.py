@@ -13,6 +13,8 @@ from .service import (
     search_and_download,
     search_and_download_sync,
     search_papers,
+    search_papers_complete,
+    search_papers_complete_sync,
     search_papers_sync,
 )
 
@@ -23,8 +25,10 @@ __all__ = [
     "Author",
     "FetcherConfig",
     "search_papers",
+    "search_papers_complete",
     "search_and_download",
     "search_papers_sync",
+    "search_papers_complete_sync",
     "search_and_download_sync",
     "get_paper_metadata",
     "get_paper_metadata_sync",

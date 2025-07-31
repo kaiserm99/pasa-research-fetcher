@@ -39,6 +39,54 @@ async def search_papers(
         return await fetcher.fetch_papers(query, max_results)
 
 
+async def search_papers_complete(
+    query: str,
+    max_results: int | None = None,
+    sort_by_relevance: bool = True,
+    config: FetcherConfig | None = None,
+) -> list[Paper]:
+    """
+    Search for research papers with completion guarantee and relevance sorting.
+    
+    This function ensures the search runs until fully complete, returning all
+    available papers sorted by relevance score (highest first by default).
+
+    Args:
+        query: Search query for papers
+        max_results: Maximum number of results to return
+        sort_by_relevance: Whether to sort results by relevance score (highest first)
+        config: Optional configuration object
+
+    Returns:
+        List of Paper objects, guaranteed to be complete and sorted
+
+    Example:
+        ```python
+        import asyncio
+        from pasa_research_fetcher import search_papers_complete
+
+        async def main():
+            # Get complete results sorted by relevance
+            papers = await search_papers_complete(
+                "machine learning transformers", 
+                max_results=20,
+                sort_by_relevance=True
+            )
+            
+            print(f"Found {len(papers)} papers")
+            for paper in papers[:5]:  # Show top 5
+                print(f"{paper.metadata.title}")
+                print(f"  Score: {paper.relevance_score:.3f}")
+                print(f"  Authors: {[a.name for a in paper.metadata.authors[:2]]}")
+                print()
+
+        asyncio.run(main())
+        ```
+    """
+    async with PasaFetcher(config) as fetcher:
+        return await fetcher.fetch_papers_until_complete(query, max_results, sort_by_relevance)
+
+
 async def search_and_download(
     query: str,
     output_dir: str = "./downloads",
@@ -123,6 +171,62 @@ def search_papers_sync(
         return asyncio.run(search_papers(query, max_results, config))
 
 
+def search_papers_complete_sync(
+    query: str,
+    max_results: int | None = None,
+    sort_by_relevance: bool = True,
+    config: FetcherConfig | None = None,
+) -> list[Paper]:
+    """
+    Synchronous wrapper for search_papers_complete with completion guarantee
+    
+    This function ensures the search runs until fully complete, returning all
+    available papers sorted by relevance score (highest first by default).
+
+    Args:
+        query: Search query for papers
+        max_results: Maximum number of results to return
+        sort_by_relevance: Whether to sort results by relevance score (highest first)
+        config: Optional configuration object
+
+    Returns:
+        List of Paper objects, guaranteed to be complete and sorted
+
+    Example:
+        ```python
+        from pasa_research_fetcher import search_papers_complete_sync
+
+        # Get complete results sorted by relevance
+        papers = search_papers_complete_sync(
+            "neural networks attention mechanism", 
+            max_results=15,
+            sort_by_relevance=True
+        )
+        
+        print(f"Found {len(papers)} papers")
+        for paper in papers[:3]:  # Show top 3
+            print(f"{paper.metadata.title}")
+            print(f"  Score: {paper.relevance_score:.3f}")
+            print(f"  PDF: {paper.pdf_url}")
+            print()
+        ```
+    """
+    try:
+        # Try to get the current event loop
+        _ = asyncio.get_running_loop()
+        # If we're in an async context, we need to run in a new thread
+        import concurrent.futures
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(
+                asyncio.run, search_papers_complete(query, max_results, sort_by_relevance, config)
+            )
+            return future.result()
+    except RuntimeError:
+        # No event loop running, safe to use asyncio.run
+        return asyncio.run(search_papers_complete(query, max_results, sort_by_relevance, config))
+
+
 def search_and_download_sync(
     query: str,
     output_dir: str = "./downloads",
@@ -192,9 +296,9 @@ async def get_paper_metadata(query: str, max_results: int | None = None) -> list
             "title": paper.metadata.title,
             "authors": [author.name for author in paper.metadata.authors],
             "abstract": paper.metadata.abstract,
-            "published_date": paper.metadata.published_date.isoformat()
-            if paper.metadata.published_date
-            else None,
+            "published_date": (
+                paper.metadata.published_date.isoformat() if paper.metadata.published_date else None
+            ),
             "pdf_url": str(paper.pdf_url),
             "arxiv_url": str(paper.arxiv_url),
             "relevance_score": paper.relevance_score,

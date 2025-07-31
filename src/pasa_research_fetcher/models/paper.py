@@ -36,9 +36,9 @@ class Paper(BaseModel):
     metadata: PaperMetadata
     pdf_url: HttpUrl = Field(..., description="URL to PDF file")
     arxiv_url: HttpUrl = Field(..., description="ArXiv paper page URL")
-    tex_url: HttpUrl | None = Field(None, description="URL to TeX source if available")
-    relevance_score: float | None = Field(None, description="Relevance score from PASA")
-    summary: str | None = Field(None, description="PASA-generated summary")
+    tex_url: HttpUrl | None = Field(default=None, description="URL to TeX source if available")
+    relevance_score: float | None = Field(default=None, description="Relevance score from PASA")
+    summary: str | None = Field(default=None, description="PASA-generated summary")
     extracted_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC), description="Extraction timestamp"
     )
@@ -46,6 +46,4 @@ class Paper(BaseModel):
         default_factory=dict, description="Additional extracted data"
     )
 
-    model_config = {
-        "json_encoders": {datetime: lambda v: v.isoformat(), HttpUrl: str}
-    }
+    model_config = {"json_encoders": {datetime: lambda v: v.isoformat(), HttpUrl: str}}

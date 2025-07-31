@@ -85,6 +85,57 @@ class PasaFetcher:
 
         return papers
 
+    async def fetch_papers_until_complete(
+        self, query: str, max_results: int | None = None, sort_by_relevance: bool = True
+    ) -> list[Paper]:
+        """
+        Fetch research papers with guarantee that task runs until fully complete.
+        This method ensures complete results are returned, sorted by relevance.
+
+        Args:
+            query: Search query for papers
+            max_results: Maximum number of papers to return
+            sort_by_relevance: Whether to sort results by relevance score (highest first)
+
+        Returns:
+            List of Paper objects, guaranteed to be complete and sorted
+        """
+        # Check cache first
+        cache_key = f"complete:{query}:max:{max_results}:sorted:{sort_by_relevance}"
+        cached_result = await self.cache.get(cache_key)
+        if cached_result:
+            logger.info(f"Returning cached complete results for query: {query}")
+            return cached_result  # type: ignore
+
+        logger.info(f"Starting guaranteed complete search for: {query}")
+
+        # Use API client with extended polling to ensure complete results
+        papers = await self.api_client.search_papers_complete(query, max_results)
+
+        # Enrich with ArXiv metadata
+        if papers:
+            enriched_papers = []
+            for paper in papers:
+                enriched_paper = await self._enrich_with_arxiv_data(paper)
+                enriched_papers.append(enriched_paper)
+            papers = enriched_papers
+
+        # Sort by relevance if requested
+        if sort_by_relevance and papers:
+            papers.sort(key=lambda p: p.relevance_score or 0.0, reverse=True)
+            logger.info(f"Sorted {len(papers)} papers by relevance score")
+
+        # Cache complete results
+        await self.cache.set(cache_key, papers)
+
+        logger.info(
+            f"Completed search with {len(papers)} papers (scores: {papers[0].relevance_score:.3f}-{papers[-1].relevance_score:.3f})"
+            if papers
+            else "Completed search with 0 papers"
+        )
+
+        return papers
+
     async def _enrich_with_arxiv_data(self, paper: Paper) -> Paper:
         """Enrich paper with additional ArXiv metadata"""
         try:

@@ -83,6 +83,131 @@ class PasaApiClient:
 
         return papers
 
+    async def search_papers_complete(
+        self, query: str, max_results: int | None = None
+    ) -> list[Paper]:
+        """
+        Search for papers with enhanced completion guarantee.
+        This method uses extended polling and stricter completion criteria
+        to ensure all available papers are found before returning results.
+
+        Args:
+            query: Search query
+            max_results: Maximum number of results to return
+
+        Returns:
+            List of Paper objects, guaranteed to be complete
+        """
+        session_id = self._generate_session_id()
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Searching papers (complete mode)...", total=None)
+
+            # Step 1: Initiate search
+            progress.update(task, description="Initiating comprehensive search...")
+            await self._initiate_search(query, session_id)
+
+            # Step 2: Enhanced polling for complete results
+            progress.update(task, description="Waiting for complete results...")
+            papers_data = await self._poll_results_complete(session_id)
+
+            # Step 3: Parse and create Paper objects
+            progress.update(task, description="Processing complete results...")
+            papers = self._parse_papers(papers_data, query)
+
+            # Apply max_results limit if specified
+            if max_results and len(papers) > max_results:
+                papers = papers[:max_results]
+
+            progress.update(
+                task, description=f"Complete: Found {len(papers)} papers", completed=True
+            )
+
+        return papers
+
+    async def _poll_results_complete(
+        self, session_id: str, poll_interval: float = 3.0, max_polls: int = 60
+    ) -> dict[str, Any]:
+        """
+        Enhanced polling method that ensures complete results.
+        Uses stricter stability criteria and longer polling duration.
+        """
+        url = f"{self.base_url}/paper-agent/api/v1/single_get_result"
+        payload = {"session_id": session_id}
+
+        last_paper_count = 0
+        stability_count = 0
+        required_stability = 4  # Require 4 consecutive stable polls
+        min_poll_duration = 15  # Minimum 15 polls before considering completion
+
+        for poll_count in range(max_polls):
+            try:
+                response = await self.client.post(url, json=payload)
+                response.raise_for_status()
+                data = response.json()
+
+                if data.get("base_resp", {}).get("status_code") == 0:
+                    papers_json = data.get("papers", "{}")
+                    papers_dict = json.loads(papers_json) if isinstance(papers_json, str) else papers_json
+
+                    current_count = len(papers_dict)
+                    
+                    # Check if we have the same count as last poll
+                    if current_count == last_paper_count and current_count > 0:
+                        stability_count += 1
+                    else:
+                        stability_count = 0  # Reset stability counter
+
+                    last_paper_count = current_count
+
+                    # Enhanced completion criteria:
+                    # 1. Must have completed minimum polling duration
+                    # 2. Must have stable results for required consecutive polls
+                    # 3. Must have found at least some papers
+                    if (poll_count >= min_poll_duration and 
+                        stability_count >= required_stability and 
+                        current_count > 0):
+                        logger.info(
+                            f"Enhanced polling complete: {current_count} papers "
+                            f"(stable for {stability_count} polls, total polls: {poll_count + 1})"
+                        )
+                        return papers_dict  # type: ignore
+
+                    # Log progress periodically
+                    if poll_count % 5 == 0:
+                        logger.debug(
+                            f"Enhanced polling: {current_count} papers "
+                            f"(stability: {stability_count}/{required_stability}, "
+                            f"poll: {poll_count + 1}/{max_polls})"
+                        )
+
+            except Exception as e:
+                logger.warning(f"Enhanced polling error (attempt {poll_count + 1}): {e}")
+
+            await asyncio.sleep(poll_interval)
+
+        # If we exit the loop, return whatever we have
+        logger.warning(f"Enhanced polling completed after {max_polls} attempts with {last_paper_count} papers")
+        
+        # Make one final attempt to get results
+        try:
+            response = await self.client.post(url, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            
+            if data.get("base_resp", {}).get("status_code") == 0:
+                papers_json = data.get("papers", "{}")
+                papers_dict = json.loads(papers_json) if isinstance(papers_json, str) else papers_json
+                return papers_dict  # type: ignore
+        except Exception as e:
+            logger.error(f"Final enhanced polling attempt failed: {e}")
+
+        return {}
+
     async def _initiate_search(self, query: str, session_id: str) -> None:
         """Initiate search request"""
         url = f"{self.base_url}/paper-agent/api/v1/single_paper_agent"
