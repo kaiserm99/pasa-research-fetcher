@@ -145,7 +145,7 @@ class PasaApiClient:
         required_stability = 3  # Require 3 consecutive stable polls
         min_poll_duration = 10  # Minimum 10 polls before considering completion
         poll_count = 0
-        
+
         # Safety limit to prevent infinite loops (can be overridden)
         safety_limit = max_polls or 120  # Default 4 minutes max
 
@@ -256,6 +256,7 @@ class PasaApiClient:
 
         last_paper_count = 0
         stable_count = 0
+        current_papers: dict[str, Any] = {}  # Initialize to prevent unbound variable
 
         for poll_count in range(max_polls):
             try:

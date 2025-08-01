@@ -136,7 +136,9 @@ def search_complete(
     output_format: str = typer.Option("json", "--format", "-f", help="Output format (json, table)"),
     download_pdfs: bool = typer.Option(True, "--pdfs/--no-pdfs", help="Download PDF files"),
     download_tex: bool = typer.Option(False, "--tex/--no-tex", help="Download TeX source files"),
-    sort_by_relevance: bool = typer.Option(True, "--sort/--no-sort", help="Sort by relevance score"),
+    sort_by_relevance: bool = typer.Option(
+        True, "--sort/--no-sort", help="Sort by relevance score"
+    ),
     timeout: int = typer.Option(60000, "--timeout", help="Request timeout in milliseconds"),
 ) -> None:
     """Search for research papers with completion guarantee and relevance sorting"""
@@ -173,9 +175,7 @@ async def _search_complete_async(
 
     async with PasaFetcher(config) as fetcher:
         # Use the complete search method
-        papers = await fetcher.fetch_papers_until_complete(
-            query, max_results, sort_by_relevance
-        )
+        papers = await fetcher.fetch_papers_until_complete(query, max_results, sort_by_relevance)
 
         if not papers:
             console.print("[yellow]No papers found for query.[/yellow]")

@@ -18,7 +18,15 @@ Search for research papers using natural language queries.
 pasa-fetcher search "machine learning transformers" [OPTIONS]
 ```
 
-**Options:**
+### `search-complete` - Complete Search with Guarantee
+
+Search for research papers with completion guarantee and automatic relevance sorting. This command ensures the search runs until fully complete, returning all available papers sorted by relevance score.
+
+```bash
+pasa-fetcher search-complete "machine learning transformers" [OPTIONS]
+```
+
+**Standard Search Options:**
 
 - `--max, -m INTEGER`: Maximum number of results to return (default: 50)
 - `--output, -o PATH`: Output directory for downloads
@@ -26,6 +34,13 @@ pasa-fetcher search "machine learning transformers" [OPTIONS]
 - `--pdfs/--no-pdfs`: Download PDF files (default: no-pdfs)
 - `--tex/--no-tex`: Download TeX source files (default: no-tex)
 - `--timeout INTEGER`: Request timeout in milliseconds (default: 30000)
+
+**Complete Search Options:**
+
+All standard options plus:
+
+- `--sort/--no-sort`: Sort by relevance score (default: sort)
+- `--timeout INTEGER`: Extended timeout (default: 60000ms for complete search)
 
 **Examples:**
 
@@ -41,6 +56,15 @@ pasa-fetcher search "deep learning" --pdfs --output ./papers --max 5
 
 # Search with custom timeout
 pasa-fetcher search "quantum computing" --timeout 60000 --max 20
+
+# Complete search with guaranteed results and relevance sorting
+pasa-fetcher search-complete "machine learning transformers" --format table --max 15
+
+# Complete search with downloads and custom sorting
+pasa-fetcher search-complete "neural networks attention" --pdfs --output ./complete-papers --sort
+
+# Complete search without sorting (faster)
+pasa-fetcher search-complete "computer vision" --no-sort --max 20
 ```
 
 ### `config` - Show Configuration

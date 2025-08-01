@@ -53,7 +53,9 @@ class TestCLI:
         assert result.exit_code == 0
         assert "Search for research papers" in result.stdout
         # Check for options without ANSI codes by looking for the text content
-        assert "max" in result.stdout.lower() and "maximum number of results" in result.stdout.lower()
+        assert (
+            "max" in result.stdout.lower() and "maximum number of results" in result.stdout.lower()
+        )
         assert "output" in result.stdout.lower() and "output directory" in result.stdout.lower()
         assert "format" in result.stdout.lower() and "output format" in result.stdout.lower()
 
